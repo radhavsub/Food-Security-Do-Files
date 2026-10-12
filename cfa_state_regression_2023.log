@@ -1,0 +1,1023 @@
+----------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\radha\Documents\Food security dos\state_regression_2023\cfa_state_regression_2
+> 023.log
+  log type:  text
+ opened on:   5 Oct 2026, 19:26:15
+
+. 
+. 
+. *******************************************************
+. * 1. CFA STATE ESTIMATES
+. *******************************************************
+. 
+. use "cfa_state_household_counts_2023_wide.dta", clear
+
+. 
+. keep year gestfips state_fips state_name ///
+>      hh_count_any hh_se_any share_pct_any
+
+. 
+. rename hh_count_any cfa_households
+
+. rename hh_se_any cfa_se
+
+. rename share_pct_any cfa_share_pct
+
+. 
+. isid gestfips
+
+. 
+. save "cfa_state_base_2023.dta", replace
+file cfa_state_base_2023.dta saved
+
+. 
+. 
+. *******************************************************
+. * 2. STATE POPULATION
+. *******************************************************
+. 
+. clear
+
+. 
+. import delimited "PopulationEstimates.csv", ///
+>     clear varnames(1) case(lower) asdouble
+(5 vars, 208225 obs)
+
+. 
+. keep if attribute == "POP_ESTIMATE_2023"
+(204,950 observations deleted)
+
+. keep if mod(fipstxt,1000) == 0
+(3,222 observations deleted)
+
+. 
+. drop if state == "US"
+(1 observation deleted)
+
+. drop if state == "PR"
+(1 observation deleted)
+
+. 
+. gen gestfips = floor(fipstxt/1000)
+
+. 
+. rename value population_2023
+
+. 
+. keep gestfips population_2023
+
+. 
+. isid gestfips
+
+. 
+. save "ers_population_state_2023.dta", replace
+file ers_population_state_2023.dta saved
+
+. 
+. 
+. *******************************************************
+. * 3. STATE POVERTY
+. *******************************************************
+. 
+. clear
+
+. 
+. import delimited "Poverty2023.csv", ///
+>     clear varnames(1) case(lower) asdouble
+(5 vars, 79961 obs)
+
+. 
+. keep if attribute == "PCTPOVALL_2023"
+(76,766 observations deleted)
+
+. keep if mod(fips_code,1000) == 0
+(3,143 observations deleted)
+
+. 
+. drop if stabr == "US"
+(1 observation deleted)
+
+. drop if stabr == "PR"
+(0 observations deleted)
+
+. 
+. gen gestfips = floor(fips_code/1000)
+
+. 
+. rename value poverty_pct_2023
+
+. 
+. keep gestfips poverty_pct_2023
+
+. 
+. isid gestfips
+
+. 
+. save "ers_poverty_state_2023.dta", replace
+file ers_poverty_state_2023.dta saved
+
+. 
+. 
+. *******************************************************
+. * 4. STATE EDUCATION
+. *******************************************************
+. 
+. clear
+
+. 
+. import delimited "Education2023.csv", ///
+>     clear varnames(1) case(lower) asdouble
+(5 vars, 169245 obs)
+
+. 
+. capture confirm variable fipscode
+
+. if !_rc {
+.     rename fipscode fips_code
+. }
+
+. 
+. keep if attribute == ///
+>     "Percent of adults who are not high school graduates, 2019-23"
+(165,970 observations deleted)
+
+. 
+. keep if mod(fips_code,1000) == 0
+(3,222 observations deleted)
+
+. 
+. drop if state == "US"
+(1 observation deleted)
+
+. drop if state == "PR"
+(1 observation deleted)
+
+. 
+. gen gestfips = floor(fips_code/1000)
+
+. 
+. rename value less_hs_pct_2019_23
+
+. 
+. keep gestfips less_hs_pct_2019_23
+
+. 
+. isid gestfips
+
+. 
+. save "ers_education_state_2023.dta", replace
+file ers_education_state_2023.dta saved
+
+. 
+. 
+. *******************************************************
+. * 5. COUNTY POPULATION
+. *******************************************************
+. 
+. clear
+
+. 
+. import delimited "PopulationEstimates.csv", ///
+>     clear varnames(1) case(lower) asdouble
+(5 vars, 208225 obs)
+
+. 
+. keep if attribute == "POP_ESTIMATE_2023"
+(204,950 observations deleted)
+
+. keep if mod(fipstxt,1000) != 0
+(53 observations deleted)
+
+. 
+. drop if state == "PR"
+(78 observations deleted)
+
+. drop if state == "VI"
+(0 observations deleted)
+
+. drop if state == "GU"
+(0 observations deleted)
+
+. drop if state == "AS"
+(0 observations deleted)
+
+. drop if state == "MP"
+(0 observations deleted)
+
+. drop if state == "US"
+(0 observations deleted)
+
+. 
+. rename value county_population_2023
+
+. 
+. gen gestfips = floor(fipstxt/1000)
+
+. 
+. keep fipstxt gestfips county_population_2023
+
+. 
+. isid fipstxt
+
+. 
+. save "ers_county_population_2023.dta", replace
+file ers_county_population_2023.dta saved
+
+. 
+. 
+. *******************************************************
+. * 6. URBAN INFLUENCE CODES
+. *******************************************************
+. 
+. clear
+
+. 
+. import delimited "UrbanInfluencecodes2024.csv", ///
+>     clear varnames(1) case(lower)
+(5 vars, 9703 obs)
+
+. 
+. capture confirm variable fipsuic
+
+. if !_rc {
+.     rename fipsuic fipstxt
+. }
+
+. 
+. capture confirm variable fips_uic
+
+. if !_rc {
+.     rename fips_uic fipstxt
+. }
+
+. 
+. keep if attribute == "UIC_2024"
+(6,470 observations deleted)
+
+. 
+. destring value, gen(uic_2024) force
+value contains nonnumeric characters; uic_2024 generated as byte
+
+. 
+. keep fipstxt state county_name uic_2024
+
+. 
+. drop if missing(fipstxt)
+(0 observations deleted)
+
+. drop if missing(uic_2024)
+(0 observations deleted)
+
+. 
+. drop if state == "PR"
+(78 observations deleted)
+
+. drop if state == "VI"
+(3 observations deleted)
+
+. drop if state == "GU"
+(1 observation deleted)
+
+. drop if state == "AS"
+(3 observations deleted)
+
+. drop if state == "MP"
+(4 observations deleted)
+
+. 
+. isid fipstxt
+
+. 
+. save "ers_uic_2024.dta", replace
+file ers_uic_2024.dta saved
+
+. 
+. 
+. *******************************************************
+. * 7. CREATE STATE RURAL SHARE
+. *******************************************************
+. 
+. use "ers_county_population_2023.dta", clear
+
+. 
+. merge 1:1 fipstxt using "ers_uic_2024.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                             3,144  (_merge==3)
+    -----------------------------------------
+
+. 
+. tab _merge
+
+                 _merge |      Freq.     Percent        Cum.
+------------------------+-----------------------------------
+            matched (3) |      3,144      100.00      100.00
+------------------------+-----------------------------------
+                  Total |      3,144      100.00
+
+. assert _merge == 3
+
+. drop _merge
+
+. 
+. gen rural = inlist(uic_2024,6,8,9)
+
+. 
+. gen rural_population_2023 = county_population_2023 if rural == 1
+(1,998 missing values generated)
+
+. replace rural_population_2023 = 0 if rural == 0
+(1,998 real changes made)
+
+. 
+. collapse ///
+>     (sum) rural_population_2023 ///
+>           county_population_2023, ///
+>     by(gestfips)
+
+. 
+. gen rural_pop_share_pct = ///
+>     100 * rural_population_2023 / county_population_2023
+
+. 
+. label variable rural_pop_share_pct ///
+>     "Percent population in UIC 6, 8, or 9 counties"
+
+. 
+. isid gestfips
+
+. 
+. save "ers_rural_state_2023.dta", replace
+file ers_rural_state_2023.dta saved
+
+. 
+. 
+. *******************************************************
+. * 8. MERGE STATE DATA
+. *******************************************************
+. 
+. use "cfa_state_base_2023.dta", clear
+
+. 
+. merge 1:1 gestfips using "ers_population_state_2023.dta"
+(note: variable gestfips was byte, now float to accommodate using data's values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                51  (_merge==3)
+    -----------------------------------------
+
+. assert _merge == 3
+
+. drop _merge
+
+. 
+. merge 1:1 gestfips using "ers_poverty_state_2023.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                51  (_merge==3)
+    -----------------------------------------
+
+. assert _merge == 3
+
+. drop _merge
+
+. 
+. merge 1:1 gestfips using "ers_education_state_2023.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                51  (_merge==3)
+    -----------------------------------------
+
+. assert _merge == 3
+
+. drop _merge
+
+. 
+. merge 1:1 gestfips using "ers_rural_state_2023.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                51  (_merge==3)
+    -----------------------------------------
+
+. assert _merge == 3
+
+. drop _merge
+
+. 
+. 
+. *******************************************************
+. * 9. CREATE REGRESSION VARIABLES
+. *******************************************************
+. 
+. gen ln_cfa_households = ln(cfa_households)
+
+. gen ln_population_2023 = ln(population_2023)
+
+. 
+. label variable cfa_households ///
+>     "Estimated CFA households"
+
+. 
+. label variable ln_cfa_households ///
+>     "Natural log of CFA households"
+
+. 
+. label variable ln_population_2023 ///
+>     "Natural log of state population"
+
+. 
+. label variable poverty_pct_2023 ///
+>     "Percent population in poverty, 2023"
+
+. 
+. label variable less_hs_pct_2019_23 ///
+>     "Percent adults without high school diploma"
+
+. 
+. label variable rural_pop_share_pct ///
+>     "Percent population in UIC 6, 8, or 9 counties"
+
+. 
+. count
+  51
+
+. isid gestfips
+
+. 
+. misstable summarize ///
+>     cfa_households ///
+>     population_2023 ///
+>     poverty_pct_2023 ///
+>     less_hs_pct_2019_23 ///
+>     rural_pop_share_pct
+(variables nonmissing or string)
+
+. 
+. summarize ///
+>     cfa_households ///
+>     population_2023 ///
+>     poverty_pct_2023 ///
+>     less_hs_pct_2019_23 ///
+>     rural_pop_share_pct
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+cfa_househ~s |         51    204162.5    211422.7    19929.4   993972.7
+populat~2023 |         51     6566959     7460690     584057   3.90e+07
+poverty~2023 |         51    12.19608    2.516582        7.3       18.9
+less_hs_p~23 |         51    9.129722    2.456147   5.429067   15.40075
+rural_pop_~t |         51    8.468289     9.08077          0   31.51441
+
+. 
+. save "cfa_state_regression_2023.dta", replace
+file cfa_state_regression_2023.dta saved
+
+. 
+. 
+. *******************************************************
+. * 10. REGRESSION MODELS
+. *******************************************************
+. 
+. reg ln_cfa_households ///
+>     ln_population_2023
+
+      Source |       SS           df       MS      Number of obs   =        51
+-------------+----------------------------------   F(1, 49)        =    880.11
+       Model |  49.5738781         1  49.5738781   Prob > F        =    0.0000
+    Residual |  2.76000499        49  .056326633   R-squared       =    0.9473
+-------------+----------------------------------   Adj R-squared   =    0.9462
+       Total |  52.3338831        50  1.04667766   Root MSE        =    .23733
+
+------------------------------------------------------------------------------------
+ ln_cfa_households |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------------+----------------------------------------------------------------
+ln_population_2023 |   .9552945   .0322009    29.67   0.000     .8905844    1.020005
+             _cons |  -2.759429   .4903971    -5.63   0.000    -3.744919   -1.773939
+------------------------------------------------------------------------------------
+
+. 
+. estimates store M1
+
+. 
+. 
+. reg ln_cfa_households ///
+>     ln_population_2023 ///
+>     poverty_pct_2023
+
+      Source |       SS           df       MS      Number of obs   =        51
+-------------+----------------------------------   F(2, 48)        =    492.72
+       Model |  49.9031399         2    24.95157   Prob > F        =    0.0000
+    Residual |  2.43074321        48  .050640484   R-squared       =    0.9536
+-------------+----------------------------------   Adj R-squared   =    0.9516
+       Total |  52.3338831        50  1.04667766   Root MSE        =    .22503
+
+------------------------------------------------------------------------------------
+ ln_cfa_households |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------------+----------------------------------------------------------------
+ln_population_2023 |   .9427809   .0309242    30.49   0.000     .8806036    1.004958
+  poverty_pct_2023 |   .0326598   .0128083     2.55   0.014      .006907    .0584126
+             _cons |  -2.967614   .4720995    -6.29   0.000    -3.916834   -2.018395
+------------------------------------------------------------------------------------
+
+. 
+. estimates store M2
+
+. 
+. 
+. reg ln_cfa_households ///
+>     ln_population_2023 ///
+>     poverty_pct_2023 ///
+>     less_hs_pct_2019_23
+
+      Source |       SS           df       MS      Number of obs   =        51
+-------------+----------------------------------   F(3, 47)        =    344.05
+       Model |   50.054626         3  16.6848753   Prob > F        =    0.0000
+    Residual |  2.27925712        47  .048494832   R-squared       =    0.9564
+-------------+----------------------------------   Adj R-squared   =    0.9537
+       Total |  52.3338831        50  1.04667766   Root MSE        =    .22022
+
+-------------------------------------------------------------------------------------
+  ln_cfa_households |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------------+----------------------------------------------------------------
+ ln_population_2023 |   .9839843   .0382005    25.76   0.000     .9071349    1.060834
+   poverty_pct_2023 |   .0566531   .0184768     3.07   0.004     .0194826    .0938236
+less_hs_pct_2019_23 |  -.0393543   .0222666    -1.77   0.084    -.0841489    .0054403
+              _cons |  -3.527002   .5600063    -6.30   0.000     -4.65359   -2.400415
+-------------------------------------------------------------------------------------
+
+. 
+. estimates store M3
+
+. 
+. 
+. reg ln_cfa_households ///
+>     ln_population_2023 ///
+>     poverty_pct_2023 ///
+>     less_hs_pct_2019_23 ///
+>     rural_pop_share_pct
+
+      Source |       SS           df       MS      Number of obs   =        51
+-------------+----------------------------------   F(4, 46)        =    257.03
+       Model |  50.0926184         4  12.5231546   Prob > F        =    0.0000
+    Residual |  2.24126477        46  .048723147   R-squared       =    0.9572
+-------------+----------------------------------   Adj R-squared   =    0.9534
+       Total |  52.3338831        50  1.04667766   Root MSE        =    .22073
+
+-------------------------------------------------------------------------------------
+  ln_cfa_households |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------------+----------------------------------------------------------------
+ ln_population_2023 |   .9965613   .0408534    24.39   0.000     .9143276    1.078795
+   poverty_pct_2023 |    .050985    .019601     2.60   0.012     .0115301    .0904398
+less_hs_pct_2019_23 |  -.0329862   .0234551    -1.41   0.166    -.0801989    .0142264
+rural_pop_share_pct |    .003867   .0043792     0.88   0.382    -.0049479     .012682
+              _cons |  -3.739858   .6108915    -6.12   0.000    -4.969519   -2.510198
+-------------------------------------------------------------------------------------
+
+. 
+. estimates store M4
+
+. 
+. 
+. *******************************************************
+. * 11. MODEL COMPARISON
+. *******************************************************
+. 
+. estimates table M1 M2 M3 M4, ///
+>     b(%9.4f) se(%9.4f) ///
+>     stats(N r2 r2_a)
+
+--------------------------------------------------------------
+    Variable |    M1          M2          M3          M4      
+-------------+------------------------------------------------
+ln_popu~2023 |    0.9553      0.9428      0.9840      0.9966  
+             |    0.0322      0.0309      0.0382      0.0409  
+poverty~2023 |                0.0327      0.0567      0.0510  
+             |                0.0128      0.0185      0.0196  
+less_hs_p~23 |                           -0.0394     -0.0330  
+             |                            0.0223      0.0235  
+rural_pop_~t |                                        0.0039  
+             |                                        0.0044  
+       _cons |   -2.7594     -2.9676     -3.5270     -3.7399  
+             |    0.4904      0.4721      0.5600      0.6109  
+-------------+------------------------------------------------
+           N |        51          51          51          51  
+          r2 |    0.9473      0.9536      0.9564      0.9572  
+        r2_a |    0.9462      0.9516      0.9537      0.9534  
+--------------------------------------------------------------
+                                                  legend: b/se
+
+. 
+. 
+. *******************************************************
+. * 12. ROBUST STANDARD ERRORS
+. *******************************************************
+. 
+. reg ln_cfa_households ///
+>     ln_population_2023 ///
+>     poverty_pct_2023 ///
+>     less_hs_pct_2019_23 ///
+>     rural_pop_share_pct, ///
+>     vce(robust)
+
+Linear regression                               Number of obs     =         51
+                                                F(4, 46)          =     410.37
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.9572
+                                                Root MSE          =     .22073
+
+-------------------------------------------------------------------------------------
+                    |               Robust
+  ln_cfa_households |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------------+----------------------------------------------------------------
+ ln_population_2023 |   .9965613   .0386458    25.79   0.000     .9187715    1.074351
+   poverty_pct_2023 |    .050985   .0156954     3.25   0.002     .0193917    .0825783
+less_hs_pct_2019_23 |  -.0329862   .0168729    -1.95   0.057    -.0669497    .0009772
+rural_pop_share_pct |    .003867   .0038222     1.01   0.317    -.0038266    .0115607
+              _cons |  -3.739858   .5581911    -6.70   0.000    -4.863439   -2.616278
+-------------------------------------------------------------------------------------
+
+. 
+. estimates store M4_robust
+
+. 
+. 
+. *******************************************************
+. * 13. DIAGNOSTICS
+. *******************************************************
+. 
+. estimates restore M4
+(results M4 are active now)
+
+. 
+. estat vif
+
+    Variable |       VIF       1/VIF  
+-------------+----------------------
+less_hs_p~23 |      3.41    0.293618
+poverty~2023 |      2.50    0.400484
+ln_popu~2023 |      1.86    0.537402
+rural_pop_~t |      1.62    0.616199
+-------------+----------------------
+    Mean VIF |      2.35
+
+. estat hettest
+
+Breusch-Pagan / Cook-Weisberg test for heteroskedasticity 
+         Ho: Constant variance
+         Variables: fitted values of ln_cfa_households
+
+         chi2(1)      =     0.26
+         Prob > chi2  =   0.6095
+
+. estat imtest, white
+
+White's test for Ho: homoskedasticity
+         against Ha: unrestricted heteroskedasticity
+
+         chi2(14)     =     11.41
+         Prob > chi2  =    0.6533
+
+Cameron & Trivedi's decomposition of IM-test
+
+---------------------------------------------------
+              Source |       chi2     df      p
+---------------------+-----------------------------
+  Heteroskedasticity |      11.41     14    0.6533
+            Skewness |       0.50      4    0.9734
+            Kurtosis |       0.52      1    0.4701
+---------------------+-----------------------------
+               Total |      12.44     19    0.8661
+---------------------------------------------------
+
+. 
+. predict fitted_ln_cfa, xb
+
+. predict residual, residuals
+
+. 
+. 
+. *******************************************************
+. * 14. RESIDUAL VS FITTED GRAPH
+. *******************************************************
+. 
+. rvfplot, yline(0) ///
+>     title("Residuals vs Fitted Values") ///
+>     xtitle("Fitted Values") ///
+>     ytitle("Residuals")
+
+. 
+. graph export "cfa_residuals_fitted_2023.png", ///
+>     replace width(2000)
+(note: file cfa_residuals_fitted_2023.png not found)
+(file cfa_residuals_fitted_2023.png written in PNG format)
+
+. 
+. 
+. *******************************************************
+. * 15. ACTUAL VS PREDICTED GRAPH
+. *******************************************************
+. 
+. gen predicted_cfa = exp(fitted_ln_cfa)
+
+. 
+. summarize predicted_cfa, meanonly
+
+. local xmin = r(min)
+
+. local xmax = r(max)
+
+. 
+. twoway ///
+>     (scatter cfa_households predicted_cfa) ///
+>     (function y=x, range(`xmin' `xmax')), ///
+>     title("Actual vs Predicted CFA Households") ///
+>     xtitle("Predicted CFA Households") ///
+>     ytitle("Actual CFA Households") ///
+>     legend(off)
+
+. 
+. graph export "cfa_actual_vs_predicted_2023.png", ///
+>     replace width(2000)
+(note: file cfa_actual_vs_predicted_2023.png not found)
+(file cfa_actual_vs_predicted_2023.png written in PNG format)
+
+. 
+. 
+. *******************************************************
+. * 16. INFLUENCE DIAGNOSTICS
+. *******************************************************
+. 
+. predict leverage, hat
+
+. predict cooksd, cooksd
+
+. predict studentres, rstudent
+
+. 
+. gsort -cooksd
+
+. 
+. list state_name ///
+>      cfa_households ///
+>      residual ///
+>      leverage ///
+>      cooksd ///
+>      studentres ///
+>      in 1/10, noobs
+
+  +------------------------------------------------------------------------+
+  |    state_name   cfa_ho~s    residual   leverage     cooksd   student~s |
+  |------------------------------------------------------------------------|
+  |  Rhode Island     21,800   -.3640577   .1898399   .1573551   -1.882361 |
+  |       Montana     32,025   -.3225617   .1669194   .1027195   -1.629595 |
+  | West Virginia     51,600   -.2999857   .1454228   .0735573    -1.48948 |
+  |    New Mexico    104,335    .3073065   .1392045   .0728268    1.521878 |
+  |    New Jersey    159,486   -.4575668   .0665167   .0656027   -2.236953 |
+  |------------------------------------------------------------------------|
+  |       Vermont     31,678    .3676992   .0927193   .0625125    1.790284 |
+  |     Louisiana    140,904   -.2445667   .1725613   .0618816   -1.224639 |
+  |  North Dakota     19,929   -.2847363   .1053288   .0437926   -1.376997 |
+  |       Arizona    365,358    .4953065   .0385731   .0420238    2.404486 |
+  |       Alabama    123,986    -.359717   .0607389   .0365688   -1.716733 |
+  +------------------------------------------------------------------------+
+
+. 
+. 
+. *******************************************************
+. * 17. LARGE STUDENTIZED RESIDUALS
+. *******************************************************
+. 
+. gen abs_studentres = abs(studentres)
+
+. 
+. gsort -abs_studentres
+
+. 
+. list state_name ///
+>      residual ///
+>      leverage ///
+>      cooksd ///
+>      studentres ///
+>      in 1/10, noobs
+
+  +-------------------------------------------------------------+
+  |    state_name    residual   leverage     cooksd   student~s |
+  |-------------------------------------------------------------|
+  |       Arizona    .4953065   .0385731   .0420238    2.404486 |
+  |    New Jersey   -.4575668   .0665167   .0656027   -2.236953 |
+  |  Rhode Island   -.3640577   .1898399   .1573551   -1.882361 |
+  |       Vermont    .3676992   .0927193   .0625125    1.790284 |
+  |       Alabama    -.359717   .0607389   .0365688   -1.716733 |
+  |-------------------------------------------------------------|
+  |      Missouri     .351603   .0379438   .0208037    1.654372 |
+  |       Indiana     .353021   .0258836    .013954    1.650509 |
+  |       Montana   -.3225617   .1669194   .1027195   -1.629595 |
+  |    New Mexico    .3073065   .1392045   .0728268    1.521878 |
+  | West Virginia   -.2999857   .1454228   .0735573    -1.48948 |
+  +-------------------------------------------------------------+
+
+. 
+. 
+. *******************************************************
+. * 18. SENSITIVITY: HIGHEST COOK'S D
+. *******************************************************
+. 
+. reg ln_cfa_households ///
+>     ln_population_2023 ///
+>     poverty_pct_2023 ///
+>     less_hs_pct_2019_23 ///
+>     rural_pop_share_pct ///
+>     if !inlist(state_name, ///
+>         "Rhode Island","Montana")
+
+      Source |       SS           df       MS      Number of obs   =        49
+-------------+----------------------------------   F(4, 44)        =    251.32
+       Model |  45.1298821         4  11.2824705   Prob > F        =    0.0000
+    Residual |   1.9752549        44  .044892157   R-squared       =    0.9581
+-------------+----------------------------------   Adj R-squared   =    0.9543
+       Total |   47.105137        48   .98135702   Root MSE        =    .21188
+
+-------------------------------------------------------------------------------------
+  ln_cfa_households |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------------+----------------------------------------------------------------
+ ln_population_2023 |   .9733985   .0428352    22.72   0.000     .8870697    1.059727
+   poverty_pct_2023 |   .0464582    .019251     2.41   0.020     .0076603     .085256
+less_hs_pct_2019_23 |    -.02634   .0236715    -1.11   0.272    -.0740468    .0213668
+rural_pop_share_pct |   .0042136   .0044838     0.94   0.352    -.0048229    .0132501
+              _cons |  -3.381205   .6411726    -5.27   0.000    -4.673403   -2.089006
+-------------------------------------------------------------------------------------
+
+. 
+. estimates store M4_no_RI_MT
+
+. 
+. 
+. *******************************************************
+. * 19. SENSITIVITY: LARGEST STUDENTIZED RESIDUALS
+. *******************************************************
+. 
+. reg ln_cfa_households ///
+>     ln_population_2023 ///
+>     poverty_pct_2023 ///
+>     less_hs_pct_2019_23 ///
+>     rural_pop_share_pct ///
+>     if !inlist(state_name, ///
+>         "Arizona","New Jersey")
+
+      Source |       SS           df       MS      Number of obs   =        49
+-------------+----------------------------------   F(4, 44)        =    305.06
+       Model |  49.3615759         4   12.340394   Prob > F        =    0.0000
+    Residual |  1.77991812        44  .040452684   R-squared       =    0.9652
+-------------+----------------------------------   Adj R-squared   =    0.9620
+       Total |   51.141494        48  1.06544779   Root MSE        =    .20113
+
+-------------------------------------------------------------------------------------
+  ln_cfa_households |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------------+----------------------------------------------------------------
+ ln_population_2023 |   1.001473   .0372668    26.87   0.000     .9263665    1.076579
+   poverty_pct_2023 |   .0463849   .0180838     2.56   0.014     .0099394    .0828304
+less_hs_pct_2019_23 |  -.0331356   .0214742    -1.54   0.130     -.076414    .0101429
+rural_pop_share_pct |   .0041444   .0040011     1.04   0.306    -.0039192     .012208
+              _cons |  -3.759887   .5566824    -6.75   0.000    -4.881807   -2.637967
+-------------------------------------------------------------------------------------
+
+. 
+. estimates store M4_no_AZ_NJ
+
+. 
+. 
+. *******************************************************
+. * 20. SENSITIVITY: DROP ALL FOUR FLAGGED STATES
+. *******************************************************
+. 
+. reg ln_cfa_households ///
+>     ln_population_2023 ///
+>     poverty_pct_2023 ///
+>     less_hs_pct_2019_23 ///
+>     rural_pop_share_pct ///
+>     if !inlist(state_name, ///
+>         "Rhode Island", ///
+>         "Montana", ///
+>         "Arizona", ///
+>         "New Jersey")
+
+      Source |       SS           df       MS      Number of obs   =        47
+-------------+----------------------------------   F(4, 42)        =    308.38
+       Model |  44.5566596         4  11.1391649   Prob > F        =    0.0000
+    Residual |  1.51711255        42  .036121727   R-squared       =    0.9671
+-------------+----------------------------------   Adj R-squared   =    0.9639
+       Total |  46.0737722        46  1.00160374   Root MSE        =    .19006
+
+-------------------------------------------------------------------------------------
+  ln_cfa_households |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+--------------------+----------------------------------------------------------------
+ ln_population_2023 |   .9788425   .0384553    25.45   0.000     .9012365    1.056448
+   poverty_pct_2023 |   .0418828   .0175161     2.39   0.021     .0065339    .0772316
+less_hs_pct_2019_23 |  -.0266083   .0213843    -1.24   0.220    -.0697635     .016547
+rural_pop_share_pct |   .0045151   .0040409     1.12   0.270    -.0036397    .0126699
+              _cons |  -3.408562   .5756267    -5.92   0.000    -4.570224     -2.2469
+-------------------------------------------------------------------------------------
+
+. 
+. estimates store M4_no_flagged
+
+. 
+. 
+. *******************************************************
+. * 21. SENSITIVITY COMPARISON
+. *******************************************************
+. 
+. estimates table ///
+>     M4 ///
+>     M4_no_RI_MT ///
+>     M4_no_AZ_NJ ///
+>     M4_no_flagged, ///
+>     b(%9.4f) se(%9.4f) ///
+>     stats(N r2 r2_a)
+
+--------------------------------------------------------------
+    Variable |    M4       M4_no_R~T   M4_no_A~J   M4_no_f~d  
+-------------+------------------------------------------------
+ln_popu~2023 |    0.9966      0.9734      1.0015      0.9788  
+             |    0.0409      0.0428      0.0373      0.0385  
+poverty~2023 |    0.0510      0.0465      0.0464      0.0419  
+             |    0.0196      0.0193      0.0181      0.0175  
+less_hs_p~23 |   -0.0330     -0.0263     -0.0331     -0.0266  
+             |    0.0235      0.0237      0.0215      0.0214  
+rural_pop_~t |    0.0039      0.0042      0.0041      0.0045  
+             |    0.0044      0.0045      0.0040      0.0040  
+       _cons |   -3.7399     -3.3812     -3.7599     -3.4086  
+             |    0.6109      0.6412      0.5567      0.5756  
+-------------+------------------------------------------------
+           N |        51          49          49          47  
+          r2 |    0.9572      0.9581      0.9652      0.9671  
+        r2_a |    0.9534      0.9543      0.9620      0.9639  
+--------------------------------------------------------------
+                                                  legend: b/se
+
+. 
+. 
+. *******************************************************
+. * 22. MAIN + ROBUST + SENSITIVITY COMPARISON
+. *******************************************************
+. 
+. estimates table ///
+>     M4 ///
+>     M4_robust ///
+>     M4_no_RI_MT ///
+>     M4_no_AZ_NJ ///
+>     M4_no_flagged, ///
+>     b(%9.4f) se(%9.4f) ///
+>     stats(N r2 r2_a)
+
+--------------------------------------------------------------------------
+    Variable |    M4       M4_robust   M4_no_R~T   M4_no_A~J   M4_no_f~d  
+-------------+------------------------------------------------------------
+ln_popu~2023 |    0.9966      0.9966      0.9734      1.0015      0.9788  
+             |    0.0409      0.0386      0.0428      0.0373      0.0385  
+poverty~2023 |    0.0510      0.0510      0.0465      0.0464      0.0419  
+             |    0.0196      0.0157      0.0193      0.0181      0.0175  
+less_hs_p~23 |   -0.0330     -0.0330     -0.0263     -0.0331     -0.0266  
+             |    0.0235      0.0169      0.0237      0.0215      0.0214  
+rural_pop_~t |    0.0039      0.0039      0.0042      0.0041      0.0045  
+             |    0.0044      0.0038      0.0045      0.0040      0.0040  
+       _cons |   -3.7399     -3.7399     -3.3812     -3.7599     -3.4086  
+             |    0.6109      0.5582      0.6412      0.5567      0.5756  
+-------------+------------------------------------------------------------
+           N |        51          51          49          49          47  
+          r2 |    0.9572      0.9572      0.9581      0.9652      0.9671  
+        r2_a |    0.9534      0.9534      0.9543      0.9620      0.9639  
+--------------------------------------------------------------------------
+                                                              legend: b/se
+
+. 
+. 
+. *******************************************************
+. * 23. FINAL SAVE
+. *******************************************************
+. 
+. sort gestfips
+
+. 
+. save "cfa_state_regression_2023.dta", replace
+file cfa_state_regression_2023.dta saved
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\radha\Documents\Food security dos\state_regression_2023\cfa_state_regression_2
+> 023.log
+  log type:  text
+ closed on:   5 Oct 2026, 19:26:21
+----------------------------------------------------------------------------------------------------
